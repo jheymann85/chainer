@@ -83,6 +83,17 @@ class Variable(object):
         return self.data.size
 
     @property
+    def num(self):
+        if cuda.available:
+            return cuda.to_cpu(self.data)
+        else:
+            return self.data
+
+    @num.setter
+    def num(self, val):
+        raise EnvironmentError('Setting num attribute is not allowed')
+
+    @property
     def label(self):
         """Short text that represents the function."""
         if self.data.shape == ():

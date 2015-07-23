@@ -490,7 +490,8 @@ def to_gpu(array, device=None):
         copy GPUArray into specified device.
 
     """
-    _check_cuda_available()
+    if not available:
+        _check_cuda_error()
     if isinstance(array, GPUArray):
         return array
     with using_device(device):
@@ -527,7 +528,7 @@ def to_gpu_async(array, stream=None):
         ``array`` without performing any copy.
 
     """
-    _check_cuda_available()
+    #_check_cuda_available()
     if isinstance(array, GPUArray):
         return array
     return gpuarray.to_gpu_async(array, allocator=mem_alloc, stream=stream)
@@ -582,7 +583,7 @@ def empty(shape, dtype=numpy.float32):
         pool.
 
     """
-    _check_cuda_available()
+    #_check_cuda_available()
     return gpuarray.empty(shape, dtype, allocator=mem_alloc)
 
 
@@ -625,7 +626,7 @@ def ones(shape, dtype=numpy.float32, stream=None):
 
 def empty_like(array):
     """Alias to :func:`pycuda.gpuarray.empty_like`."""
-    _check_cuda_available()
+    #_check_cuda_available()
     return gpuarray.empty_like(array)
 
 
