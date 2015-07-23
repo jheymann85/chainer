@@ -83,6 +83,9 @@ $ pip install -U chainer-cuda-deps
     cumisc = skcuda.misc
     cutools = pycuda.tools
     gpuarray = pycuda.gpuarray
+except ImportError as e:
+    available = False
+    _import_error = e
 except pkg_resources.ResolutionError as e:
     available = False
     _resolution_error = e
@@ -128,8 +131,8 @@ _cublas_handles = {}
 _pid = None
 
 
-def _check_cuda_available():
-    if not available:
+def _check_cuda_error():
+    if '_resolution_error' in globals():
         global _resolution_error
         msg = '''CUDA environment is not correctly set up.
 Use `pip install -U chainer-cuda-deps` to install libraries.
@@ -144,7 +147,11 @@ Use `pip install -U chainer-cuda-deps` to install libraries.
             msg += 'Unknwon error: ' + str(_resolution_error)
 
         raise RuntimeError(msg)
-
+    if '_import_error' in globals():
+        global _import_error
+        msg = 'CUDA environmet found but could not be imported: {}' \
+                  '\nYou will not be able to use the GPU'.format(_import_error)
+        warnings.warn(msg)
 
 def init(device=None):
     """Initializes CUDA global state.
@@ -173,7 +180,9 @@ def init(device=None):
     """
     global _contexts, _cublas_handles, _generators, _pid, _pools
 
-    _check_cuda_available()
+    if not available:
+        _check_cuda_error()
+        return
 
     pid = os.getpid()
     if _pid == pid:  # already initialized
@@ -208,7 +217,9 @@ def shutdown():
     """
     global _contexts, _cublas_handles, _pid, _pools
 
-    _check_cuda_available()
+    if not available:
+        _check_cuda_error()
+        return
 
     pid = os.getpid()
     if _pid != pid:  # not initialized
