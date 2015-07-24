@@ -39,6 +39,19 @@ class ConcatTestBase(object):
         for x in xs:
             gradient_check.assert_allclose(x.data, x.grad, atol=0, rtol=0)
 
+    def check_shape(self, xs_data, axis):
+        xs = tuple(chainer.Variable(x_data) for x_data in xs_data)
+        y = functions.concat(xs, axis=axis)
+        self.assertTrue(isinstance(y.data.shape, tuple))
+
+    def test_shape_cpu(self):
+        self.check_shape(self.xs, axis=self.axis)
+
+    @attr.gpu
+    def test_shape_gpu(self):
+        self.check_shape([cuda.to_gpu(x.copy()) for x in self.xs],
+                         axis=self.axis)
+
     def test_backward_cpu(self):
         self.check_backward(self.xs, axis=self.axis)
 
